@@ -2,4 +2,14 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="background_primary">#0A0A0F</color>
+    <color name="background_surface">#141420</color>
+    <color name="background_card">#1A1A2E</color>
+    <color name="neon_green">#00FF87</color>
+    <color name="neon_cyan">#00D4FF</color>
+    <color name="neon_purple">#9B59FF</color>
+    <color name="neon_orange">#FF6B35</color>
+    <color name="text_primary">#E0E0E0</color>
+    <color name="text_secondary">#9E9E9E</color>
+    <color name="ic_launcher_background">#0A0A0F</color>
 </resources>
