@@ -1,7 +1,11 @@
 package com.lagless.booster.ui.components
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.EaseOutBack
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.StartOffset
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
@@ -17,6 +21,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -31,28 +36,36 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lagless.booster.ui.theme.BackgroundCard
+import com.lagless.booster.ui.theme.BackgroundElevated
 import com.lagless.booster.ui.theme.BackgroundPrimary
 import com.lagless.booster.ui.theme.Divider
 import com.lagless.booster.ui.theme.NeonCyan
@@ -60,39 +73,169 @@ import com.lagless.booster.ui.theme.NeonGreen
 import com.lagless.booster.ui.theme.TextPrimary
 import com.lagless.booster.ui.theme.TextSecondary
 
+// ── Shimmer ───────────────────────────────────────────────────
+
+@Composable
+fun shimmerBrush(highlightColor: Color = Color(0xFF2A2A50)): Brush {
+    val shimmerColors = listOf(
+        BackgroundCard,
+        BackgroundElevated,
+        highlightColor,
+        BackgroundElevated,
+        BackgroundCard,
+    )
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val x by transition.animateFloat(
+        initialValue  = -600f,
+        targetValue   = 1200f,
+        animationSpec = infiniteRepeatable(tween(1100, easing = LinearEasing)),
+        label         = "shimmerX"
+    )
+    return Brush.linearGradient(
+        colors = shimmerColors,
+        start  = Offset(x, x * 0.3f),
+        end    = Offset(x + 600f, x * 0.3f + 300f)
+    )
+}
+
+@Composable
+fun ShimmerCard(
+    modifier: Modifier = Modifier,
+    height: Dp = 90.dp,
+    cornerRadius: Dp = 16.dp
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(height)
+            .clip(RoundedCornerShape(cornerRadius))
+            .background(shimmerBrush())
+    )
+}
+
+@Composable
+fun ShimmerRow(modifier: Modifier = Modifier, width: Dp = 120.dp, height: Dp = 14.dp) {
+    Box(
+        modifier = modifier
+            .width(width)
+            .height(height)
+            .clip(RoundedCornerShape(7.dp))
+            .background(shimmerBrush())
+    )
+}
+
+@Composable
+fun ShimmerLoadingDashboard() {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // Hero card skeleton
+        ShimmerCard(height = 160.dp, cornerRadius = 20.dp)
+        Spacer(Modifier.height(20.dp))
+
+        // Section header shimmer
+        ShimmerRow(width = 100.dp, height = 16.dp)
+        Spacer(Modifier.height(10.dp))
+
+        // Two stat cards
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            ShimmerCard(modifier = Modifier.weight(1f), height = 70.dp)
+            ShimmerCard(modifier = Modifier.weight(1f), height = 70.dp)
+        }
+        Spacer(Modifier.height(20.dp))
+
+        // Section header shimmer
+        ShimmerRow(width = 110.dp, height = 16.dp)
+        Spacer(Modifier.height(10.dp))
+
+        // RAM + battery row
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            ShimmerCard(modifier = Modifier.weight(1f), height = 80.dp)
+            ShimmerCard(modifier = Modifier.weight(1f), height = 80.dp)
+        }
+        Spacer(Modifier.height(20.dp))
+
+        // Quick actions
+        ShimmerRow(width = 120.dp, height = 16.dp)
+        Spacer(Modifier.height(10.dp))
+        ShimmerCard(height = 100.dp)
+    }
+}
+
+// ── Neon glow modifier ────────────────────────────────────────
+
+fun Modifier.neonGlow(color: Color, cornerRadius: Dp = 16.dp): Modifier =
+    this.drawBehind {
+        val cr = cornerRadius.toPx()
+        listOf(0.30f to 3f, 0.14f to 7f, 0.06f to 14f, 0.02f to 22f).forEach { (alpha, spread) ->
+            drawRoundRect(
+                color        = color.copy(alpha = alpha),
+                size         = Size(size.width + spread * 2, size.height + spread * 2),
+                topLeft      = Offset(-spread, -spread),
+                cornerRadius = CornerRadius(cr + spread)
+            )
+        }
+    }
+
+fun Modifier.pulsingNeonGlow(color: Color, intensity: Float, cornerRadius: Dp = 16.dp): Modifier =
+    this.drawBehind {
+        val cr = cornerRadius.toPx()
+        listOf(0.4f to 4f, 0.18f to 10f, 0.07f to 18f).forEach { (alpha, spread) ->
+            drawRoundRect(
+                color        = color.copy(alpha = alpha * intensity),
+                size         = Size(size.width + spread * 2, size.height + spread * 2),
+                topLeft      = Offset(-spread, -spread),
+                cornerRadius = CornerRadius(cr + spread)
+            )
+        }
+    }
+
+// ── Animated stat counter ─────────────────────────────────────
+
+@Composable
+fun AnimatedStatValue(
+    target   : Float,
+    format   : (Float) -> String,
+    color    : Color,
+    modifier : Modifier = Modifier,
+    style    : TextStyle = MaterialTheme.typography.headlineMedium
+) {
+    val anim by animateFloatAsState(
+        targetValue   = target,
+        animationSpec = tween(durationMillis = 1300, easing = FastOutSlowInEasing),
+        label         = "statAnim"
+    )
+    Text(
+        text       = format(anim),
+        color      = color,
+        style      = style,
+        fontWeight = FontWeight.ExtraBold,
+        modifier   = modifier
+    )
+}
+
 // ── Top App Bar ───────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LagLessTopBar(
-    title: String,
-    onBack: (() -> Unit)? = null,
-    actions: @Composable () -> Unit = {}
+    title   : String,
+    onBack  : (() -> Unit)? = null,
+    actions : @Composable () -> Unit = {}
 ) {
     TopAppBar(
         title = {
-            Text(
-                text       = title,
-                color      = TextPrimary,
-                fontWeight = FontWeight.Bold,
-                fontSize   = 18.sp
-            )
+            Text(text = title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
         },
         navigationIcon = {
             if (onBack != null) {
                 IconButton(onClick = onBack) {
-                    Icon(
-                        imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint               = NeonGreen
-                    )
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = NeonGreen)
                 }
             }
         },
-        actions     = { actions() },
-        colors      = TopAppBarDefaults.topAppBarColors(
-            containerColor         = BackgroundPrimary,
-            titleContentColor      = TextPrimary,
+        actions = { actions() },
+        colors  = TopAppBarDefaults.topAppBarColors(
+            containerColor             = BackgroundPrimary,
+            titleContentColor          = TextPrimary,
             navigationIconContentColor = NeonGreen
         )
     )
@@ -102,39 +245,68 @@ fun LagLessTopBar(
 
 @Composable
 fun NeonCard(
-    modifier: Modifier = Modifier,
-    accentColor: Color = NeonGreen,
-    onClick: (() -> Unit)? = null,
-    content: @Composable () -> Unit
+    modifier    : Modifier = Modifier,
+    accentColor : Color = NeonGreen,
+    onClick     : (() -> Unit)? = null,
+    glowing     : Boolean = false,
+    content     : @Composable () -> Unit
 ) {
+    val glowMod = if (glowing) Modifier.neonGlow(accentColor) else Modifier
     val mod = modifier
+        .then(glowMod)
         .clip(RoundedCornerShape(16.dp))
         .background(BackgroundCard)
         .border(
             width = 1.dp,
-            brush = Brush.linearGradient(
-                colors = listOf(accentColor.copy(alpha = 0.5f), Color.Transparent)
-            ),
+            brush = Brush.linearGradient(listOf(accentColor.copy(0.55f), Color.Transparent)),
             shape = RoundedCornerShape(16.dp)
         )
         .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
 
-    Box(modifier = mod.padding(16.dp)) {
-        content()
-    }
+    Box(modifier = mod.padding(16.dp)) { content() }
 }
 
-// ── Stat Row (label + value) ──────────────────────────────────
+// ── Pulsing Neon Card (for hero elements) ─────────────────────
+
+@Composable
+fun PulsingNeonCard(
+    modifier    : Modifier = Modifier,
+    accentColor : Color = NeonGreen,
+    onClick     : (() -> Unit)? = null,
+    content     : @Composable () -> Unit
+) {
+    val transition = rememberInfiniteTransition(label = "cardPulse")
+    val glowIntensity by transition.animateFloat(
+        initialValue  = 0.4f,
+        targetValue   = 1f,
+        animationSpec = infiniteRepeatable(tween(1800, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label         = "glowIntensity"
+    )
+    val mod = modifier
+        .pulsingNeonGlow(accentColor, glowIntensity)
+        .clip(RoundedCornerShape(16.dp))
+        .background(BackgroundCard)
+        .border(
+            width = 1.dp,
+            brush = Brush.linearGradient(listOf(accentColor.copy(glowIntensity * 0.8f), Color.Transparent)),
+            shape = RoundedCornerShape(16.dp)
+        )
+        .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+
+    Box(modifier = mod.padding(16.dp)) { content() }
+}
+
+// ── Stat Row ──────────────────────────────────────────────────
 
 @Composable
 fun StatRow(label: String, value: String, valueColor: Color = TextPrimary) {
     Row(
-        modifier            = Modifier.fillMaxWidth(),
+        modifier              = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment   = Alignment.CenterVertically
+        verticalAlignment     = Alignment.CenterVertically
     ) {
-        Text(text = label, color = TextSecondary, fontSize = 13.sp)
-        Text(text = value, color = valueColor, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+        Text(label, color = TextSecondary, fontSize = 13.sp)
+        Text(value, color = valueColor, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
     }
 }
 
@@ -142,55 +314,49 @@ fun StatRow(label: String, value: String, valueColor: Color = TextPrimary) {
 
 @Composable
 fun NeonProgressBar(
-    progress: Float,
-    modifier: Modifier = Modifier,
-    color: Color = NeonGreen,
-    trackColor: Color = Divider
+    progress   : Float,
+    modifier   : Modifier = Modifier,
+    color      : Color = NeonGreen,
+    trackColor : Color = Divider
 ) {
-    val animatedProgress by animateFloatAsState(
-        targetValue  = progress.coerceIn(0f, 1f),
-        animationSpec = tween(800),
-        label        = "progress"
+    val anim by animateFloatAsState(
+        targetValue   = progress.coerceIn(0f, 1f),
+        animationSpec = tween(900),
+        label         = "progress"
     )
     LinearProgressIndicator(
-        progress      = { animatedProgress },
-        modifier      = modifier
-            .fillMaxWidth()
-            .height(8.dp)
-            .clip(RoundedCornerShape(4.dp)),
-        color         = color,
-        trackColor    = trackColor,
-        strokeCap     = StrokeCap.Round
+        progress   = { anim },
+        modifier   = modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+        color      = color,
+        trackColor = trackColor,
+        strokeCap  = StrokeCap.Round
     )
 }
 
-// ── Circular Progress (storage ring) ─────────────────────────
+// ── Storage Ring ──────────────────────────────────────────────
 
 @Composable
 fun StorageRing(
-    usedFraction: Float,
-    size: Dp = 160.dp,
-    strokeWidth: Dp = 14.dp,
-    color: Color = NeonGreen,
-    trackColor: Color = Divider,
-    centerContent: @Composable () -> Unit = {}
+    usedFraction  : Float,
+    size          : Dp = 160.dp,
+    strokeWidth   : Dp = 14.dp,
+    color         : Color = NeonGreen,
+    trackColor    : Color = Divider,
+    centerContent : @Composable () -> Unit = {}
 ) {
-    val animatedFraction by animateFloatAsState(
-        targetValue  = usedFraction.coerceIn(0f, 1f),
-        animationSpec = tween(1000),
-        label        = "ring"
+    val anim by animateFloatAsState(
+        targetValue   = usedFraction.coerceIn(0f, 1f),
+        animationSpec = tween(1100),
+        label         = "ring"
     )
-    Box(
-        modifier       = Modifier.size(size),
-        contentAlignment = Alignment.Center
-    ) {
+    Box(modifier = Modifier.size(size), contentAlignment = Alignment.Center) {
         CircularProgressIndicator(
-            progress      = { animatedFraction },
-            modifier      = Modifier.size(size),
-            color         = color,
-            trackColor    = trackColor,
-            strokeWidth   = strokeWidth,
-            strokeCap     = StrokeCap.Round
+            progress    = { anim },
+            modifier    = Modifier.size(size),
+            color       = color,
+            trackColor  = trackColor,
+            strokeWidth = strokeWidth,
+            strokeCap   = StrokeCap.Round
         )
         centerContent()
     }
@@ -200,17 +366,19 @@ fun StorageRing(
 
 @Composable
 fun QuickActionButton(
-    icon: ImageVector,
-    label: String,
-    color: Color = NeonGreen,
-    onClick: () -> Unit
+    icon    : ImageVector,
+    label   : String,
+    color   : Color = NeonGreen,
+    onClick : () -> Unit
 ) {
+    val scale = remember { Animatable(1f) }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier            = Modifier
             .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
             .padding(12.dp)
+            .scale(scale.value)
     ) {
         Box(
             modifier         = Modifier
@@ -220,21 +388,10 @@ fun QuickActionButton(
                 .border(1.dp, color.copy(alpha = 0.5f), CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector        = icon,
-                contentDescription = label,
-                tint               = color,
-                modifier           = Modifier.size(26.dp)
-            )
+            Icon(icon, label, tint = color, modifier = Modifier.size(26.dp))
         }
         Spacer(Modifier.height(6.dp))
-        Text(
-            text      = label,
-            color     = TextSecondary,
-            fontSize  = 11.sp,
-            fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center
-        )
+        Text(label, color = TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
     }
 }
 
@@ -242,26 +399,26 @@ fun QuickActionButton(
 
 @Composable
 fun NeonButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    color: Color = NeonGreen,
-    enabled: Boolean = true
+    text     : String,
+    onClick  : () -> Unit,
+    modifier : Modifier = Modifier,
+    color    : Color = NeonGreen,
+    enabled  : Boolean = true
 ) {
     Button(
         onClick  = onClick,
         modifier = modifier.fillMaxWidth(),
         enabled  = enabled,
         colors   = ButtonDefaults.buttonColors(
-            containerColor = color.copy(alpha = 0.2f),
-            contentColor   = color,
+            containerColor         = color.copy(alpha = 0.18f),
+            contentColor           = color,
             disabledContainerColor = Divider,
             disabledContentColor   = TextSecondary
         ),
-        shape    = RoundedCornerShape(12.dp),
-        border   = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = if (enabled) 0.6f else 0.2f))
+        shape  = RoundedCornerShape(12.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = if (enabled) 0.6f else 0.2f))
     ) {
-        Text(text = text, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+        Text(text, fontWeight = FontWeight.Bold, fontSize = 15.sp)
     }
 }
 
@@ -270,19 +427,9 @@ fun NeonButton(
 @Composable
 fun SectionHeader(title: String, accentColor: Color = NeonGreen) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            modifier = Modifier
-                .width(3.dp)
-                .height(18.dp)
-                .background(accentColor, RoundedCornerShape(2.dp))
-        )
+        Box(Modifier.width(3.dp).height(18.dp).background(accentColor, RoundedCornerShape(2.dp)))
         Spacer(Modifier.width(8.dp))
-        Text(
-            text       = title,
-            color      = TextPrimary,
-            fontWeight = FontWeight.SemiBold,
-            fontSize   = 15.sp
-        )
+        Text(title, color = TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
     }
 }
 
@@ -290,93 +437,62 @@ fun SectionHeader(title: String, accentColor: Color = NeonGreen) {
 
 @Composable
 fun LoadingOverlay(message: String = "Scanning…") {
-    Box(
-        modifier         = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 48.dp),
-        contentAlignment = Alignment.Center
-    ) {
+    Box(modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             CircularProgressIndicator(color = NeonCyan, strokeWidth = 3.dp)
             Spacer(Modifier.height(16.dp))
-            Text(text = message, color = TextSecondary, fontSize = 14.sp)
+            Text(message, color = TextSecondary, fontSize = 14.sp)
         }
     }
 }
 
-// ── Empty State ───────────────────────────────────────────────
+// ── Empty State (with bouncing icon) ─────────────────────────
 
 @Composable
 fun EmptyState(
-    icon: ImageVector,
-    title: String,
-    subtitle: String,
-    accentColor: Color = NeonGreen,
-    action: (@Composable () -> Unit)? = null
+    icon        : ImageVector,
+    title       : String,
+    subtitle    : String,
+    accentColor : Color = NeonGreen,
+    action      : (@Composable () -> Unit)? = null
 ) {
+    val transition = rememberInfiniteTransition(label = "iconBounce")
+    val bounceY by transition.animateFloat(
+        initialValue  = 0f,
+        targetValue   = -10f,
+        animationSpec = infiniteRepeatable(tween(900, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label         = "bounce"
+    )
     Column(
-        modifier            = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 48.dp, horizontal = 24.dp),
+        modifier            = Modifier.fillMaxWidth().padding(vertical = 48.dp, horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
             modifier         = Modifier
                 .size(80.dp)
+                .offset(y = bounceY.dp)
                 .clip(CircleShape)
-                .background(accentColor.copy(alpha = 0.1f)),
+                .background(accentColor.copy(alpha = 0.12f))
+                .border(1.dp, accentColor.copy(alpha = 0.3f), CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector        = icon,
-                contentDescription = null,
-                tint               = accentColor,
-                modifier           = Modifier.size(40.dp)
-            )
+            Icon(icon, null, tint = accentColor, modifier = Modifier.size(40.dp))
         }
         Spacer(Modifier.height(20.dp))
-        Text(
-            text       = title,
-            color      = TextPrimary,
-            fontWeight = FontWeight.SemiBold,
-            fontSize   = 17.sp,
-            textAlign  = TextAlign.Center
-        )
+        Text(title, color = TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 17.sp, textAlign = TextAlign.Center)
         Spacer(Modifier.height(8.dp))
-        Text(
-            text      = subtitle,
-            color     = TextSecondary,
-            fontSize  = 14.sp,
-            textAlign = TextAlign.Center,
-            lineHeight = 20.sp
-        )
-        if (action != null) {
-            Spacer(Modifier.height(24.dp))
-            action()
-        }
+        Text(subtitle, color = TextSecondary, fontSize = 14.sp, textAlign = TextAlign.Center, lineHeight = 20.sp)
+        if (action != null) { Spacer(Modifier.height(24.dp)); action() }
     }
 }
 
-// ── Pulsing Neon Dot ──────────────────────────────────────────
+// ── Pulsing Dot ───────────────────────────────────────────────
 
 @Composable
 fun PulsingDot(color: Color = NeonGreen, size: Dp = 10.dp) {
-    val transition = rememberInfiniteTransition(label = "pulse")
-    val alpha by transition.animateFloat(
-        initialValue  = 0.3f,
-        targetValue   = 1f,
-        animationSpec = infiniteRepeatable(
-            animation  = tween(900, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "alpha"
-    )
-    Box(
-        modifier = Modifier
-            .size(size)
-            .clip(CircleShape)
-            .background(color.copy(alpha = alpha))
-    )
+    val transition = rememberInfiniteTransition(label = "dot")
+    val alpha by transition.animateFloat(0.3f, 1f, infiniteRepeatable(tween(900, easing = LinearEasing), RepeatMode.Reverse), "dotAlpha")
+    Box(Modifier.size(size).clip(CircleShape).background(color.copy(alpha = alpha)))
 }
 
 // ── Info Banner ───────────────────────────────────────────────
@@ -389,12 +505,67 @@ fun InfoBanner(text: String, color: Color = NeonCyan) {
         color    = color.copy(alpha = 0.08f),
         border   = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.25f))
     ) {
-        Text(
-            text     = text,
-            color    = color,
-            fontSize = 12.sp,
-            modifier = Modifier.padding(12.dp),
-            lineHeight = 18.sp
+        Text(text, color = color, fontSize = 12.sp, modifier = Modifier.padding(12.dp), lineHeight = 18.sp)
+    }
+}
+
+// ── Scanning Progress Bar (animated scanline) ─────────────────
+
+@Composable
+fun ScanlineBar(color: Color = NeonGreen, modifier: Modifier = Modifier) {
+    val transition = rememberInfiniteTransition(label = "scan")
+    val x by transition.animateFloat(
+        initialValue  = -1f,
+        targetValue   = 2f,
+        animationSpec = infiniteRepeatable(tween(1000, easing = LinearEasing)),
+        label         = "scanX"
+    )
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(3.dp)
+            .clip(RoundedCornerShape(2.dp))
+            .background(Divider)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.35f)
+                .height(3.dp)
+                .offset(x = (x * 300).dp)
+                .background(Brush.horizontalGradient(listOf(Color.Transparent, color, Color.Transparent)))
         )
+    }
+}
+
+// ── Pulsing Rings (sonar effect) ─────────────────────────────
+
+@Composable
+fun SonarRings(color: Color = NeonGreen, size: Dp = 120.dp) {
+    val transition = rememberInfiniteTransition(label = "sonar")
+
+    val scale1 by transition.animateFloat(0.6f, 1.6f, infiniteRepeatable(tween(1600, easing = FastOutSlowInEasing)), "s1")
+    val alpha1 by transition.animateFloat(0.5f, 0f, infiniteRepeatable(tween(1600)), "a1")
+
+    val scale2 by transition.animateFloat(0.6f, 1.6f,
+        infiniteRepeatable(tween(1600, easing = FastOutSlowInEasing), startOffset = StartOffset(530)), "s2")
+    val alpha2 by transition.animateFloat(0.5f, 0f,
+        infiniteRepeatable(tween(1600), startOffset = StartOffset(530)), "a2")
+
+    val scale3 by transition.animateFloat(0.6f, 1.6f,
+        infiniteRepeatable(tween(1600, easing = FastOutSlowInEasing), startOffset = StartOffset(1060)), "s3")
+    val alpha3 by transition.animateFloat(0.5f, 0f,
+        infiniteRepeatable(tween(1600), startOffset = StartOffset(1060)), "a3")
+
+    Box(modifier = Modifier.size(size), contentAlignment = Alignment.Center) {
+        listOf(scale1 to alpha1, scale2 to alpha2, scale3 to alpha3).forEach { (s, a) ->
+            Box(
+                modifier = Modifier
+                    .size(size)
+                    .scale(s)
+                    .clip(CircleShape)
+                    .background(Color.Transparent)
+                    .border((1.5).dp, color.copy(alpha = a), CircleShape)
+            )
+        }
     }
 }
