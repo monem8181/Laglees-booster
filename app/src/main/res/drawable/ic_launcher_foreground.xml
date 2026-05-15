@@ -4,13 +4,25 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <group
-        android:scaleX="0.3"
-        android:scaleY="0.3"
-        android:translateX="28"
-        android:translateY="28">
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M26,26L26,78L78,78L78,26ZM52,70L34,34L70,34Z" />
-    </group>
+
+    <!-- Outer glow layer (soft, large, semi-transparent) -->
+    <path
+        android:fillColor="#2800FF87"
+        android:pathData="M64,14 L33,63 L52,58 L43,94 L75,45 L56,50 Z" />
+
+    <!-- Mid glow layer -->
+    <path
+        android:fillColor="#5500FF87"
+        android:pathData="M63,17 L35,61 L52,56 L44,91 L73,48 L56,52 Z" />
+
+    <!-- Main lightning bolt — NeonGreen -->
+    <path
+        android:fillColor="#00FF87"
+        android:pathData="M62,20 L37,58 L53,54 L45,88 L71,50 L55,54 Z" />
+
+    <!-- Core highlight — bright white center for neon depth -->
+    <path
+        android:fillColor="#AAFFFFFF"
+        android:pathData="M60,26 L43,55 L53,52 L47,78 L65,51 L55,52 Z" />
+
 </vector>
