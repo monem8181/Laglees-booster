@@ -2,10 +2,27 @@ package com.lagless.booster.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// ── Background / Surface ──────────────────────────────────────
+val BackgroundPrimary = Color(0xFF0A0A0F)
+val BackgroundSurface = Color(0xFF141420)
+val BackgroundCard    = Color(0xFF1A1A2E)
+val BackgroundElevated = Color(0xFF20203A)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// ── Neon accent palette ───────────────────────────────────────
+val NeonGreen  = Color(0xFF00FF87)
+val NeonCyan   = Color(0xFF00D4FF)
+val NeonPurple = Color(0xFF9B59FF)
+val NeonOrange = Color(0xFFFF6B35)
+val NeonRed    = Color(0xFFFF3D5A)
+val NeonYellow = Color(0xFFFFD700)
+
+// ── Text ──────────────────────────────────────────────────────
+val TextPrimary   = Color(0xFFE0E0E0)
+val TextSecondary = Color(0xFF9E9E9E)
+val TextDim       = Color(0xFF5A5A7A)
+
+// ── Utility ───────────────────────────────────────────────────
+val Divider     = Color(0xFF2A2A40)
+val Success     = Color(0xFF00C853)
+val Warning     = Color(0xFFFFAB00)
+val Error       = Color(0xFFFF3D5A)
