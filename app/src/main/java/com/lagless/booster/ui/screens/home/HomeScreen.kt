@@ -19,8 +19,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.BatteryFull
+import androidx.compose.material.icons.filled.BatteryStd
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CleaningServices
+import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.outlined.Settings
@@ -38,18 +42,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.lagless.booster.ui.components.AnimatedStatValue
 import com.lagless.booster.ui.components.EmptyState
-import com.lagless.booster.ui.components.LoadingOverlay
 import com.lagless.booster.ui.components.NeonCard
 import com.lagless.booster.ui.components.NeonProgressBar
 import com.lagless.booster.ui.components.PulsingDot
+import com.lagless.booster.ui.components.PulsingNeonCard
 import com.lagless.booster.ui.components.QuickActionButton
+import com.lagless.booster.ui.components.ScanlineBar
 import com.lagless.booster.ui.components.SectionHeader
-import com.lagless.booster.ui.components.StatRow
+import com.lagless.booster.ui.components.ShimmerLoadingDashboard
 import com.lagless.booster.ui.theme.BackgroundCard
 import com.lagless.booster.ui.theme.BackgroundElevated
 import com.lagless.booster.ui.theme.BackgroundPrimary
@@ -57,6 +64,7 @@ import com.lagless.booster.ui.theme.NeonCyan
 import com.lagless.booster.ui.theme.NeonGreen
 import com.lagless.booster.ui.theme.NeonOrange
 import com.lagless.booster.ui.theme.NeonPurple
+import com.lagless.booster.ui.theme.NeonYellow
 import com.lagless.booster.ui.theme.TextPrimary
 import com.lagless.booster.ui.theme.TextSecondary
 import com.lagless.booster.utils.formatters.Formatters
@@ -64,13 +72,13 @@ import com.lagless.booster.utils.formatters.Formatters
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onNavigateStorage  : () -> Unit,
-    onNavigateCleaner  : () -> Unit,
+    onNavigateStorage   : () -> Unit,
+    onNavigateCleaner   : () -> Unit,
     onNavigateAppManager: () -> Unit,
-    onNavigateGamer    : () -> Unit,
-    onNavigateOptimize : () -> Unit,
-    onNavigateSettings : () -> Unit,
-    viewModel: HomeViewModel = viewModel()
+    onNavigateGamer     : () -> Unit,
+    onNavigateOptimize  : () -> Unit,
+    onNavigateSettings  : () -> Unit,
+    viewModel           : HomeViewModel = viewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -79,29 +87,27 @@ fun HomeScreen(
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Filled.Bolt,
-                            contentDescription = null,
-                            tint = NeonGreen,
-                            modifier = Modifier.size(22.dp)
-                        )
+                        Icon(Icons.Filled.Bolt, null, tint = NeonGreen, modifier = Modifier.size(22.dp))
                         Spacer(Modifier.width(6.dp))
                         Text(
                             "LagLess",
-                            color = TextPrimary,
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 20.sp,
+                            color         = TextPrimary,
+                            fontWeight    = FontWeight.ExtraBold,
+                            fontSize      = 20.sp,
                             letterSpacing = 1.sp
                         )
+                        Spacer(Modifier.width(8.dp))
+                        if (!state.isLoading && state.storageInfo != null) {
+                            PulsingDot(color = NeonGreen, size = 7.dp)
+                        }
                     }
                 },
                 actions = {
+                    IconButton(onClick = { viewModel.loadDashboard() }) {
+                        Icon(Icons.Filled.Bolt, "Refresh", tint = NeonGreen.copy(alpha = 0.5f), modifier = Modifier.size(18.dp))
+                    }
                     IconButton(onClick = onNavigateSettings) {
-                        Icon(
-                            Icons.Outlined.Settings,
-                            contentDescription = "Settings",
-                            tint = TextSecondary
-                        )
+                        Icon(Icons.Outlined.Settings, "Settings", tint = TextSecondary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
@@ -114,240 +120,286 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
             when {
-                state.isLoading -> LoadingOverlay("Loading dashboard…")
+                state.isLoading -> ShimmerLoadingDashboard()
+
                 state.error != null -> EmptyState(
-                    icon     = Icons.Filled.Android,
-                    title    = "Couldn't load data",
-                    subtitle = state.error ?: "",
+                    icon        = Icons.Filled.Android,
+                    title       = "Couldn't load data",
+                    subtitle    = state.error ?: "",
                     accentColor = NeonOrange
                 )
+
                 else -> {
-                    // ── Storage hero card ─────────────────────────────────
+                    // ── Storage hero card ──────────────────────────────────
                     StorageHeroCard(state = state)
 
                     Spacer(Modifier.height(20.dp))
 
-                    // ── Quick stats row ───────────────────────────────────
+                    // ── Device stats (RAM + Battery) ───────────────────────
+                    SectionHeader("Device Stats", accentColor = NeonPurple)
+                    Spacer(Modifier.height(10.dp))
+                    DeviceStatsRow(state = state)
+
+                    Spacer(Modifier.height(20.dp))
+
+                    // ── Quick stats ────────────────────────────────────────
                     SectionHeader("Quick Stats")
                     Spacer(Modifier.height(10.dp))
                     QuickStatsRow(state = state)
 
                     Spacer(Modifier.height(20.dp))
 
-                    // ── Quick action buttons ──────────────────────────────
+                    // ── Quick actions ──────────────────────────────────────
                     SectionHeader("Quick Actions")
                     Spacer(Modifier.height(12.dp))
                     QuickActionsGrid(
-                        onScanJunk      = onNavigateCleaner,
+                        onScanJunk       = onNavigateCleaner,
                         onAnalyzeStorage = onNavigateStorage,
-                        onGamerMode     = onNavigateGamer,
-                        onAppManager    = onNavigateAppManager,
-                        onOptimize      = onNavigateOptimize
+                        onGamerMode      = onNavigateGamer,
+                        onAppManager     = onNavigateAppManager,
+                        onOptimize       = onNavigateOptimize
                     )
 
                     Spacer(Modifier.height(20.dp))
 
-                    // ── Biggest app shortcut ──────────────────────────────
+                    // ── Biggest app shortcut ───────────────────────────────
                     state.biggestApp?.let { app ->
                         SectionHeader("Biggest App", accentColor = NeonOrange)
                         Spacer(Modifier.height(10.dp))
-                        NeonCard(accentColor = NeonOrange, onClick = onNavigateAppManager) {
+                        NeonCard(accentColor = NeonOrange, onClick = onNavigateAppManager, glowing = true) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Box(
-                                    modifier = Modifier
-                                        .size(44.dp)
-                                        .clip(CircleShape)
-                                        .background(NeonOrange.copy(alpha = 0.15f)),
-                                    contentAlignment = Alignment.Center
+                                    Modifier.size(44.dp).clip(CircleShape).background(NeonOrange.copy(0.15f)),
+                                    Alignment.Center
                                 ) {
-                                    Icon(
-                                        Icons.Filled.Apps,
-                                        contentDescription = null,
-                                        tint = NeonOrange,
-                                        modifier = Modifier.size(24.dp)
-                                    )
+                                    Icon(Icons.Filled.Apps, null, tint = NeonOrange, modifier = Modifier.size(24.dp))
                                 }
                                 Spacer(Modifier.width(14.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        app.appName,
-                                        color = TextPrimary,
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontSize = 15.sp
-                                    )
-                                    Text(
-                                        Formatters.formatBytes(app.sizeBytes),
-                                        color = NeonOrange,
-                                        fontSize = 13.sp
-                                    )
+                                Column(Modifier.weight(1f)) {
+                                    Text(app.appName, color = TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                                    Text(Formatters.formatBytes(app.sizeBytes), color = NeonOrange, fontSize = 13.sp)
                                 }
-                                Text(
-                                    "View →",
-                                    color = NeonOrange,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
+                                Text("View →", color = NeonOrange, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                             }
                         }
                     }
 
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(16.dp))
                 }
             }
         }
     }
 }
 
+// ── Storage Hero ──────────────────────────────────────────────
+
 @Composable
 private fun StorageHeroCard(state: HomeUiState) {
-    val storage     = state.storageInfo
-    val usedFrac    = storage?.usedPercent ?: 0f
-    val accentColor = when {
-        usedFrac > 0.85f -> NeonOrange
-        usedFrac > 0.6f  -> NeonCyan
-        else             -> NeonGreen
+    val storage  = state.storageInfo
+    val frac     = storage?.usedPercent ?: 0f
+    val accent   = when {
+        frac > 0.85f -> NeonOrange
+        frac > 0.6f  -> NeonCyan
+        else         -> NeonGreen
     }
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(
-                Brush.linearGradient(
-                    colors = listOf(BackgroundElevated, BackgroundCard)
-                )
-            )
-            .padding(20.dp)
+            .background(Brush.linearGradient(listOf(BackgroundElevated, BackgroundCard)))
     ) {
-        Column {
+        Column(modifier = Modifier.padding(20.dp)) {
             Row(
                 modifier              = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment     = Alignment.CenterVertically
+                verticalAlignment     = Alignment.Top
             ) {
                 Column {
-                    Text("Storage", color = TextSecondary, fontSize = 12.sp, letterSpacing = 1.sp)
-                    Text(
-                        text       = Formatters.formatPercent(usedFrac) + " used",
-                        color      = accentColor,
-                        fontWeight = FontWeight.Bold,
-                        fontSize   = 28.sp
-                    )
+                    Text("STORAGE", color = TextSecondary, fontSize = 11.sp, letterSpacing = 2.sp)
+                    Spacer(Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.Bottom) {
+                        AnimatedStatValue(
+                            target  = frac * 100f,
+                            format  = { "%.0f".format(it) },
+                            color   = accent,
+                            style   = androidx.compose.material3.MaterialTheme.typography.displayMedium
+                        )
+                        Text(
+                            "% used",
+                            color     = accent.copy(0.7f),
+                            fontSize  = 16.sp,
+                            modifier  = Modifier.padding(bottom = 8.dp, start = 4.dp),
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    PulsingDot(color = accentColor)
-                    Spacer(Modifier.width(6.dp))
+                Column(horizontalAlignment = Alignment.End) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        PulsingDot(color = accent, size = 8.dp)
+                        Spacer(Modifier.width(5.dp))
+                        Text("Live", color = TextSecondary, fontSize = 11.sp)
+                    }
+                    Spacer(Modifier.height(6.dp))
                     Text(
-                        text  = if (storage != null) "Live" else "—",
-                        color = TextSecondary,
-                        fontSize = 11.sp
+                        if (storage != null) Formatters.formatBytes(storage.freeBytes) + " free"
+                        else "—",
+                        color      = NeonGreen,
+                        fontSize   = 13.sp,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
-            NeonProgressBar(progress = usedFrac, color = accentColor)
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(14.dp))
+            NeonProgressBar(frac, color = accent)
+            Spacer(Modifier.height(14.dp))
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                StorageStat(
-                    label = "Used",
-                    value = if (storage != null) Formatters.formatBytes(storage.usedBytes) else "—",
-                    color = accentColor
-                )
-                StorageStat(
-                    label = "Free",
-                    value = if (storage != null) Formatters.formatBytes(storage.freeBytes) else "—",
-                    color = NeonGreen
-                )
-                StorageStat(
-                    label = "Total",
-                    value = if (storage != null) Formatters.formatBytes(storage.totalBytes) else "—",
-                    color = TextSecondary
-                )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                StorageStat("Used",  if (storage != null) Formatters.formatBytes(storage.usedBytes) else "—", accent)
+                StorageStat("Free",  if (storage != null) Formatters.formatBytes(storage.freeBytes) else "—", NeonGreen)
+                StorageStat("Total", if (storage != null) Formatters.formatBytes(storage.totalBytes) else "—", TextSecondary)
             }
         }
     }
 }
 
 @Composable
-private fun StorageStat(label: String, value: String, color: androidx.compose.ui.graphics.Color) {
+private fun StorageStat(label: String, value: String, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(value, color = color, fontWeight = FontWeight.Bold, fontSize = 14.sp)
         Text(label, color = TextSecondary, fontSize = 11.sp)
     }
 }
 
+// ── Device Stats ──────────────────────────────────────────────
+
 @Composable
-private fun QuickStatsRow(state: HomeUiState) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        NeonCard(modifier = Modifier.weight(1f), accentColor = NeonCyan) {
+private fun DeviceStatsRow(state: HomeUiState) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        // RAM card
+        PulsingNeonCard(modifier = Modifier.weight(1f), accentColor = NeonPurple) {
             Column {
-                Text("Junk Est.", color = TextSecondary, fontSize = 11.sp)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.Memory, null, tint = NeonPurple, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(5.dp))
+                    Text("RAM", color = TextSecondary, fontSize = 11.sp, letterSpacing = 1.sp)
+                }
+                Spacer(Modifier.height(6.dp))
+                AnimatedStatValue(
+                    target  = state.ramUsedPercent * 100f,
+                    format  = { "%.0f%%".format(it) },
+                    color   = NeonPurple,
+                    style   = androidx.compose.material3.MaterialTheme.typography.headlineSmall
+                )
+                Spacer(Modifier.height(4.dp))
+                NeonProgressBar(state.ramUsedPercent, color = NeonPurple)
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    Formatters.formatBytes(state.junkEstimateBytes),
-                    color = NeonCyan,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp
+                    if (state.ramTotalBytes > 0)
+                        "${Formatters.formatBytes(state.ramUsedBytes)} / ${Formatters.formatBytes(state.ramTotalBytes)}"
+                    else "—",
+                    color    = TextSecondary,
+                    fontSize = 10.sp
                 )
             }
         }
-        NeonCard(modifier = Modifier.weight(1f), accentColor = NeonPurple) {
+
+        // Battery card
+        NeonCard(modifier = Modifier.weight(1f), accentColor = batteryColor(state.batteryLevel, state.isCharging)) {
+            val bColor = batteryColor(state.batteryLevel, state.isCharging)
             Column {
-                Text("Unused Apps", color = TextSecondary, fontSize = 11.sp)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = if (state.isCharging) Icons.Filled.BatteryChargingFull else Icons.Filled.BatteryFull,
+                        contentDescription = null,
+                        tint     = bColor,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(5.dp))
+                    Text(
+                        if (state.isCharging) "CHARGING" else "BATTERY",
+                        color         = TextSecondary,
+                        fontSize      = 11.sp,
+                        letterSpacing = 1.sp
+                    )
+                }
+                Spacer(Modifier.height(6.dp))
+                AnimatedStatValue(
+                    target  = if (state.batteryLevel >= 0) state.batteryLevel.toFloat() else 0f,
+                    format  = { if (state.batteryLevel >= 0) "%.0f%%".format(it) else "—" },
+                    color   = bColor,
+                    style   = androidx.compose.material3.MaterialTheme.typography.headlineSmall
+                )
+                Spacer(Modifier.height(4.dp))
+                NeonProgressBar(
+                    progress = if (state.batteryLevel >= 0) state.batteryLevel / 100f else 0f,
+                    color    = bColor
+                )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    if (state.unusedAppsCount > 0) "${state.unusedAppsCount}" else "—",
-                    color = NeonPurple,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp
+                    if (state.isCharging) "Plugged in" else "On battery",
+                    color    = TextSecondary,
+                    fontSize = 10.sp
                 )
             }
         }
     }
 }
 
+private fun batteryColor(level: Int, charging: Boolean): Color = when {
+    charging     -> NeonGreen
+    level < 20   -> NeonOrange
+    level < 50   -> NeonYellow
+    else         -> NeonCyan
+}
+
+// ── Quick Stats Row ───────────────────────────────────────────
+
+@Composable
+private fun QuickStatsRow(state: HomeUiState) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        NeonCard(Modifier.weight(1f), NeonCyan) {
+            Column {
+                Text("JUNK EST.", color = TextSecondary, fontSize = 10.sp, letterSpacing = 1.sp)
+                Spacer(Modifier.height(4.dp))
+                Text(Formatters.formatBytes(state.junkEstimateBytes), color = NeonCyan, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            }
+        }
+        NeonCard(Modifier.weight(1f), NeonGreen) {
+            Column {
+                Text("USER APPS", color = TextSecondary, fontSize = 10.sp, letterSpacing = 1.sp)
+                Spacer(Modifier.height(4.dp))
+                AnimatedStatValue(
+                    target  = state.totalUserApps.toFloat(),
+                    format  = { "%.0f".format(it) },
+                    color   = NeonGreen,
+                    style   = androidx.compose.material3.MaterialTheme.typography.titleLarge
+                )
+            }
+        }
+    }
+}
+
+// ── Quick Actions Grid ────────────────────────────────────────
+
 @Composable
 private fun QuickActionsGrid(
-    onScanJunk: () -> Unit,
-    onAnalyzeStorage: () -> Unit,
-    onGamerMode: () -> Unit,
-    onAppManager: () -> Unit,
-    onOptimize: () -> Unit
+    onScanJunk       : () -> Unit,
+    onAnalyzeStorage : () -> Unit,
+    onGamerMode      : () -> Unit,
+    onAppManager     : () -> Unit,
+    onOptimize       : () -> Unit
 ) {
-    NeonCard {
-        Row(
-            modifier              = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            QuickActionButton(
-                icon    = Icons.Filled.CleaningServices,
-                label   = "Scan Junk",
-                color   = NeonGreen,
-                onClick = onScanJunk
-            )
-            QuickActionButton(
-                icon    = Icons.Filled.Storage,
-                label   = "Storage",
-                color   = NeonCyan,
-                onClick = onAnalyzeStorage
-            )
-            QuickActionButton(
-                icon    = Icons.Filled.SportsEsports,
-                label   = "Gamer Mode",
-                color   = NeonPurple,
-                onClick = onGamerMode
-            )
-            QuickActionButton(
-                icon    = Icons.Filled.Apps,
-                label   = "Apps",
-                color   = NeonOrange,
-                onClick = onAppManager
-            )
+    NeonCard(glowing = false) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            QuickActionButton(Icons.Filled.CleaningServices, "Scan Junk",  NeonGreen,  onScanJunk)
+            QuickActionButton(Icons.Filled.Storage,         "Storage",    NeonCyan,   onAnalyzeStorage)
+            QuickActionButton(Icons.Filled.SportsEsports,   "Gamer Mode", NeonPurple, onGamerMode)
+            QuickActionButton(Icons.Filled.Apps,            "Apps",       NeonOrange, onAppManager)
         }
     }
 }
