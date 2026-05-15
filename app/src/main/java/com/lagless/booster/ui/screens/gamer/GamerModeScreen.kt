@@ -26,7 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.BatteryChargingFull
-import androidx.compose.material.icons.filled.BoltSharp
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DoNotDisturb
 import androidx.compose.material.icons.filled.NetworkCheck
@@ -159,7 +159,7 @@ fun GamerModeScreen(onBack: () -> Unit, viewModel: GamerModeViewModel = viewMode
                                     .getLaunchIntentForPackage(state.favoriteGamePackage)
                                 if (intent != null) context.startActivity(intent)
                             }) {
-                                Icon(Icons.Filled.BoltSharp, contentDescription = "Launch", tint = NeonGreen)
+                                Icon(Icons.Filled.Bolt, contentDescription = "Launch", tint = NeonGreen)
                             }
                             IconButton(onClick = { viewModel.clearFavoriteGame() }) {
                                 Icon(Icons.Filled.Close, contentDescription = "Remove", tint = TextSecondary)
