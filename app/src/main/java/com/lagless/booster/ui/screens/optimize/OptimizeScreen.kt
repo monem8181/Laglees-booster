@@ -16,7 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BatteryChargingFull
-import androidx.compose.material.icons.filled.BoltSharp
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CleaningServices
 import androidx.compose.material.icons.filled.DeveloperMode
 import androidx.compose.material.icons.filled.Memory
@@ -169,7 +169,7 @@ fun OptimizeScreen(
                     ).forEach { point ->
                         Row(verticalAlignment = Alignment.Top) {
                             Icon(
-                                Icons.Filled.BoltSharp,
+                                Icons.Filled.Bolt,
                                 contentDescription = null,
                                 tint = NeonCyan,
                                 modifier = Modifier.size(14.dp).padding(top = 2.dp)
