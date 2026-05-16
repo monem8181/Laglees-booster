@@ -52,25 +52,39 @@ object ShizukuManager {
             if (version >= 11) {
                 Shizuku.requestPermission(SHIZUKU_PERMISSION_CODE)
             }
-            // Pre-v11 Shizuku used a manifest permission; nothing to request at runtime
         } catch (_: Throwable) { /* Shizuku not available or not running */ }
     }
 
-    // ── Shell command execution ───────────────────────────────
+    // ── Shell command execution via reflection ────────────────
+    //
+    // Shizuku.newProcess() is package-private in API 13.1.5.
+    // We invoke it via reflection to avoid a compile-time visibility error
+    // while still producing the same runtime result.
+
+    @Suppress("UNCHECKED_CAST")
+    private fun newProcessReflective(cmd: Array<String>): Process? {
+        return try {
+            val clazz  = Class.forName("rikka.shizuku.Shizuku")
+            val method = clazz.getDeclaredMethod(
+                "newProcess",
+                Array<String>::class.java,   // cmd
+                Array<String>::class.java,   // env
+                String::class.java           // dir
+            )
+            method.isAccessible = true
+            method.invoke(null, cmd, null, null) as? Process
+        } catch (_: Throwable) {
+            null
+        }
+    }
 
     suspend fun runShellCommand(vararg args: String): Result<String> = withContext(Dispatchers.IO) {
         try {
-            val method = Shizuku::class.java.getDeclaredMethod(
-                "newProcess",
-                Array<String>::class.java,
-                Array<String>::class.java,
-                String::class.java
-            )
-            method.isAccessible = true
-            val process = method.invoke(null, args, null, null) as Process
-            val stdout  = process.inputStream.bufferedReader().readText()
-            val stderr  = process.errorStream.bufferedReader().readText()
-            val exit    = process.waitFor()
+            val process = newProcessReflective(arrayOf(*args))
+                ?: return@withContext Result.failure(ShizukuCommandException("newProcess unavailable"))
+            val stdout = process.inputStream.bufferedReader().readText()
+            val stderr = process.errorStream.bufferedReader().readText()
+            val exit   = process.waitFor()
             if (exit == 0) Result.success(stdout.trim())
             else Result.failure(ShizukuCommandException("Exit $exit: ${stderr.trim()}"))
         } catch (e: Throwable) {
@@ -80,20 +94,15 @@ object ShizukuManager {
 
     // ── Advanced actions ──────────────────────────────────────
 
-    /**
-     * Force-stops an app using ADB shell `am force-stop`.
-     * Requires Shizuku to be CONNECTED and permission granted.
-     */
+    /** Force-stops an app via ADB shell `am force-stop`. Requires CONNECTED state. */
     suspend fun forceStopApp(packageName: String): Result<Unit> =
         runShellCommand("am", "force-stop", packageName).map { }
 
-    /**
-     * Returns a quick info dump for the given package (Advanced Mode only).
-     */
+    /** Returns a trimmed package dump for diagnostic purposes. */
     suspend fun getPackageDump(packageName: String): Result<String> =
         runShellCommand("dumpsys", "package", packageName)
 
-    // ── Human-readable status description ────────────────────
+    // ── Human-readable status descriptions ───────────────────
 
     fun ShizukuStatus.displayTitle(): String = when (this) {
         ShizukuStatus.NOT_INSTALLED    -> "Shizuku Not Installed"
