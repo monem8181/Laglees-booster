@@ -16,6 +16,7 @@ import com.lagless.booster.ui.screens.gamer.GamerModeScreen
 import com.lagless.booster.ui.screens.home.HomeScreen
 import com.lagless.booster.ui.screens.optimize.OptimizeScreen
 import com.lagless.booster.ui.screens.settings.SettingsScreen
+import com.lagless.booster.ui.screens.shizuku.ShizukuSetupScreen
 import com.lagless.booster.ui.screens.splash.SplashScreen
 import com.lagless.booster.ui.screens.storage.StorageScreen
 import com.lagless.booster.ui.screens.unused.UnusedAppsScreen
@@ -27,48 +28,34 @@ fun LagLessNavGraph(navController: NavHostController) {
         navController    = navController,
         startDestination = Screen.Splash.route,
         enterTransition  = {
-            slideIntoContainer(
-                towards       = AnimatedContentTransitionScope.SlideDirection.Start,
-                animationSpec = tween(300)
-            ) + fadeIn(tween(300))
+            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) + fadeIn(tween(300))
         },
         exitTransition   = {
-            slideOutOfContainer(
-                towards       = AnimatedContentTransitionScope.SlideDirection.Start,
-                animationSpec = tween(300)
-            ) + fadeOut(tween(300))
+            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) + fadeOut(tween(300))
         },
         popEnterTransition = {
-            slideIntoContainer(
-                towards       = AnimatedContentTransitionScope.SlideDirection.End,
-                animationSpec = tween(300)
-            ) + fadeIn(tween(300))
+            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) + fadeIn(tween(300))
         },
         popExitTransition  = {
-            slideOutOfContainer(
-                towards       = AnimatedContentTransitionScope.SlideDirection.End,
-                animationSpec = tween(300)
-            ) + fadeOut(tween(300))
+            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) + fadeOut(tween(300))
         }
     ) {
         composable(Screen.Splash.route) {
-            SplashScreen(
-                onFinished = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
-                    }
+            SplashScreen(onFinished = {
+                navController.navigate(Screen.Home.route) {
+                    popUpTo(Screen.Splash.route) { inclusive = true }
                 }
-            )
+            })
         }
 
         composable(Screen.Home.route) {
             HomeScreen(
-                onNavigateStorage   = { navController.navigate(Screen.Storage.route) },
-                onNavigateCleaner   = { navController.navigate(Screen.Cleaner.route) },
+                onNavigateStorage    = { navController.navigate(Screen.Storage.route) },
+                onNavigateCleaner    = { navController.navigate(Screen.Cleaner.route) },
                 onNavigateAppManager = { navController.navigate(Screen.AppManager.route) },
-                onNavigateGamer     = { navController.navigate(Screen.GamerMode.route) },
-                onNavigateOptimize  = { navController.navigate(Screen.Optimize.route) },
-                onNavigateSettings  = { navController.navigate(Screen.Settings.route) }
+                onNavigateGamer      = { navController.navigate(Screen.GamerMode.route) },
+                onNavigateOptimize   = { navController.navigate(Screen.Optimize.route) },
+                onNavigateSettings   = { navController.navigate(Screen.Settings.route) }
             )
         }
 
@@ -99,22 +86,24 @@ fun LagLessNavGraph(navController: NavHostController) {
         composable(Screen.Optimize.route) {
             OptimizeScreen(
                 onBack        = { navController.popBackStack() },
-                onGoToCleaner = {
-                    navController.popBackStack()
-                    navController.navigate(Screen.Cleaner.route)
-                }
+                onGoToCleaner = { navController.popBackStack(); navController.navigate(Screen.Cleaner.route) }
             )
         }
 
         composable(Screen.Settings.route) {
             SettingsScreen(
-                onBack  = { navController.popBackStack() },
-                onAbout = { navController.navigate(Screen.About.route) }
+                onBack         = { navController.popBackStack() },
+                onAbout        = { navController.navigate(Screen.About.route) },
+                onShizukuSetup = { navController.navigate(Screen.ShizukuSetup.route) }
             )
         }
 
         composable(Screen.About.route) {
             AboutScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.ShizukuSetup.route) {
+            ShizukuSetupScreen(onBack = { navController.popBackStack() })
         }
     }
 }
