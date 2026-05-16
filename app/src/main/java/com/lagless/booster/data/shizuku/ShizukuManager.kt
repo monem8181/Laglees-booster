@@ -60,7 +60,14 @@ object ShizukuManager {
 
     suspend fun runShellCommand(vararg args: String): Result<String> = withContext(Dispatchers.IO) {
         try {
-            val process = Shizuku.newProcess(args, null, null)
+            val method = Shizuku::class.java.getDeclaredMethod(
+                "newProcess",
+                Array<String>::class.java,
+                Array<String>::class.java,
+                String::class.java
+            )
+            method.isAccessible = true
+            val process = method.invoke(null, args, null, null) as Process
             val stdout  = process.inputStream.bufferedReader().readText()
             val stderr  = process.errorStream.bufferedReader().readText()
             val exit    = process.waitFor()
