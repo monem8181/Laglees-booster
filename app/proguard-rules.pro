@@ -65,6 +65,15 @@
 -keep class android.app.ActivityManager$MemoryInfo { *; }
 -keep class android.os.BatteryManager { *; }
 
+# ── Shizuku ───────────────────────────────────────────────────────────────────
+-keep class rikka.shizuku.** { *; }
+-keep class moe.shizuku.** { *; }
+-keepclassmembers class * {
+    @rikka.shizuku.** *;
+}
+-dontwarn rikka.shizuku.**
+-dontwarn moe.shizuku.**
+
 # ── Suppress noisy warnings from third-party libs ────────────────────────────
 -dontwarn org.jetbrains.**
 -dontwarn javax.annotation.**
