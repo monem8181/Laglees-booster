@@ -547,14 +547,14 @@ fun SonarRings(color: Color = NeonGreen, size: Dp = 120.dp) {
     val alpha1 by transition.animateFloat(0.5f, 0f, infiniteRepeatable(tween(1600)), "a1")
 
     val scale2 by transition.animateFloat(0.6f, 1.6f,
-        infiniteRepeatable(tween(1600, easing = FastOutSlowInEasing), startOffset = StartOffset(530)), "s2")
+        infiniteRepeatable(tween(1600, easing = FastOutSlowInEasing), initialStartOffset = StartOffset(530)), "s2")
     val alpha2 by transition.animateFloat(0.5f, 0f,
-        infiniteRepeatable(tween(1600), startOffset = StartOffset(530)), "a2")
+        infiniteRepeatable(tween(1600), initialStartOffset = StartOffset(530)), "a2")
 
     val scale3 by transition.animateFloat(0.6f, 1.6f,
-        infiniteRepeatable(tween(1600, easing = FastOutSlowInEasing), startOffset = StartOffset(1060)), "s3")
+        infiniteRepeatable(tween(1600, easing = FastOutSlowInEasing), initialStartOffset = StartOffset(1060)), "s3")
     val alpha3 by transition.animateFloat(0.5f, 0f,
-        infiniteRepeatable(tween(1600), startOffset = StartOffset(1060)), "a3")
+        infiniteRepeatable(tween(1600), initialStartOffset = StartOffset(1060)), "a3")
 
     Box(modifier = Modifier.size(size), contentAlignment = Alignment.Center) {
         listOf(scale1 to alpha1, scale2 to alpha2, scale3 to alpha3).forEach { (s, a) ->
