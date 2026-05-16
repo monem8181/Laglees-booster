@@ -96,11 +96,11 @@ fun SplashScreen(onFinished: () -> Unit) {
     val r1Scale by pulse.animateFloat(0.8f, 1.9f, infiniteRepeatable(tween(1600, easing = FastOutSlowInEasing)), "r1s")
     val r1Alpha by pulse.animateFloat(0.5f, 0f,   infiniteRepeatable(tween(1600)), "r1a")
 
-    val r2Scale by pulse.animateFloat(0.8f, 1.9f, infiniteRepeatable(tween(1600, easing = FastOutSlowInEasing), startOffset = StartOffset(530)), "r2s")
-    val r2Alpha by pulse.animateFloat(0.5f, 0f,   infiniteRepeatable(tween(1600), startOffset = StartOffset(530)), "r2a")
+    val r2Scale by pulse.animateFloat(0.8f, 1.9f, infiniteRepeatable(tween(1600, easing = FastOutSlowInEasing), initialStartOffset = StartOffset(530)), "r2s")
+    val r2Alpha by pulse.animateFloat(0.5f, 0f,   infiniteRepeatable(tween(1600), initialStartOffset = StartOffset(530)), "r2a")
 
-    val r3Scale by pulse.animateFloat(0.8f, 1.9f, infiniteRepeatable(tween(1600, easing = FastOutSlowInEasing), startOffset = StartOffset(1060)), "r3s")
-    val r3Alpha by pulse.animateFloat(0.5f, 0f,   infiniteRepeatable(tween(1600), startOffset = StartOffset(1060)), "r3a")
+    val r3Scale by pulse.animateFloat(0.8f, 1.9f, infiniteRepeatable(tween(1600, easing = FastOutSlowInEasing), initialStartOffset = StartOffset(1060)), "r3s")
+    val r3Alpha by pulse.animateFloat(0.5f, 0f,   infiniteRepeatable(tween(1600), initialStartOffset = StartOffset(1060)), "r3a")
 
     // Scanline travel
     val scanX by pulse.animateFloat(-1f, 2f, infiniteRepeatable(tween(1100)), "scanX")
