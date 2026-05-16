@@ -74,6 +74,10 @@ dependencies {
     // Accompanist Permissions (runtime permissions in Compose)
     implementation("com.google.accompanist:accompanist-permissions:0.36.0")
 
+    // Shizuku — optional ADB-level Advanced Mode (no root required)
+    implementation("dev.rikka.shizuku:api:13.1.5")
+    implementation("dev.rikka.shizuku:provider:13.1.5")
+
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
