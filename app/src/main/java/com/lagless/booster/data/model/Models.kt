@@ -42,6 +42,32 @@ data class AppStorageStats(
     val totalBytes: Long get() = appBytes + dataBytes + cacheBytes
 }
 
+// ── Advanced: Per-app cache info (for Cleaner) ───────────────
+
+data class AppCacheInfo(
+    val packageName: String,
+    val appName    : String,
+    val cacheBytes : Long,
+    val totalBytes : Long
+) {
+    val cacheFraction: Float get() =
+        if (totalBytes > 0) cacheBytes.toFloat() / totalBytes.toFloat() else 0f
+}
+
+// ── Advanced: Cleanup result ──────────────────────────────────
+
+data class CleanupResult(
+    val filesDeleted    : Int,
+    val filesFailed     : Int,
+    val fileBytesFreed  : Long,
+    val cacheAppsScanned: Int,
+    val cacheBytesFreed : Long,
+    val wasAdvancedMode : Boolean,
+    val durationMs      : Long
+) {
+    val totalBytesFreed: Long get() = fileBytesFreed + cacheBytesFreed
+}
+
 // ── Advanced: Sort order for App Manager ─────────────────────
 
 enum class AppSortOrder(val label: String) {
