@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chess Arrow Master</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="popup-container">
+    <div class="popup-header">
+      <div class="popup-icon">🎯</div>
+      <h1>Chess Arrow Master</h1>
+      <p class="popup-subtitle">Mobile Touch Annotation Tool</p>
+    </div>
+
+    <div class="popup-status" id="status">
+      <div class="status-dot" id="status-dot"></div>
+      <span id="status-text">Checking...</span>
+    </div>
+
+    <div class="popup-info">
+      <h2>How to Use</h2>
+      <ul>
+        <li>Open <a href="https://www.chess.com" target="_blank">Chess.com</a> in your mobile browser</li>
+        <li>Tap the 🎯 floating button to open the toolbar</li>
+        <li>Enable the extension and choose a mode</li>
+        <li><strong>Single tap</strong> – highlight a square</li>
+        <li><strong>Long press + drag</strong> – draw an arrow</li>
+        <li><strong>Two-finger drag</strong> – force annotation</li>
+        <li><strong>Double tap</strong> – remove highlight</li>
+        <li><strong>Triple tap</strong> – remove nearest arrow</li>
+      </ul>
+    </div>
+
+    <div class="popup-info">
+      <h2>Supported Browsers</h2>
+      <ul>
+        <li>Kiwi Browser</li>
+        <li>Lemur Browser</li>
+        <li>Quetta Browser</li>
+      </ul>
+    </div>
+
+    <div class="popup-footer">
+      <p>v1.0.0 &middot; Visual annotation only &middot; No tracking</p>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
