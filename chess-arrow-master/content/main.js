@@ -16,22 +16,27 @@
   const toolbar = new Toolbar(touchHandler, overlayEngine);
   const settings = new SettingsManager(touchHandler, overlayEngine, toolbar);
 
-  boardDetector.on('boardFound', (data) => {
-    overlayEngine.init();
-    touchHandler.init();
-    toolbar.init();
-    settings.init();
-    touchHandler.enabled = true;
+  let modulesInitialized = false;
+
+  boardDetector.on('boardFound', () => {
+    if (!modulesInitialized) {
+      modulesInitialized = true;
+      overlayEngine.init();
+      touchHandler.init();
+      toolbar.init();
+      settings.init();
+      touchHandler.enabled = true;
+    }
   });
 
-  let initAttempts = 0;
-  const maxAttempts = 60;
+  let retryCount = 0;
+  const maxRetries = 60;
 
   function tryInit() {
     boardDetector.init();
 
-    if (!boardDetector.board && initAttempts < maxAttempts) {
-      initAttempts++;
+    if (!boardDetector.board && retryCount < maxRetries) {
+      retryCount++;
       setTimeout(tryInit, 1000);
     }
   }

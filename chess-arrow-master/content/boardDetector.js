@@ -12,6 +12,9 @@ class BoardDetector {
     this._listeners = [];
     this._mutationObs = null;
     this._resizeObs = null;
+    this._initialized = false;
+    this._boundOnResize = () => this._onResize();
+    this._boundOnOrientationChange = () => setTimeout(() => this._onResize(), 300);
     this._selectors = [
       'wc-chess-board',
       'chess-board',
@@ -27,12 +30,13 @@ class BoardDetector {
   }
 
   init() {
+    if (!this._initialized) {
+      this._initialized = true;
+      this._observeMutations();
+      window.addEventListener('resize', this._boundOnResize);
+      window.addEventListener('orientationchange', this._boundOnOrientationChange);
+    }
     this._detect();
-    this._observeMutations();
-    window.addEventListener('resize', () => this._onResize());
-    window.addEventListener('orientationchange', () => {
-      setTimeout(() => this._onResize(), 300);
-    });
   }
 
   _detect() {
@@ -154,7 +158,9 @@ class BoardDetector {
   destroy() {
     if (this._mutationObs) this._mutationObs.disconnect();
     if (this._resizeObs) this._resizeObs.disconnect();
-    window.removeEventListener('resize', this._onResize);
+    window.removeEventListener('resize', this._boundOnResize);
+    window.removeEventListener('orientationchange', this._boundOnOrientationChange);
+    this._initialized = false;
     this._listeners = [];
   }
 }

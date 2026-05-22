@@ -214,7 +214,7 @@ class TouchHandler {
     // Remove highlight from square
     const removed = this._overlay.removeHighlight(square);
     if (removed) {
-      this._pushUndo({ type: 'removeHighlight', square, color: this._color });
+      this._pushUndo({ type: 'removeHighlight', square, color: this._annotations.highlights.get(square) });
       this._annotations.highlights.delete(square);
     }
   }
@@ -302,7 +302,7 @@ class TouchHandler {
         type
       };
       this._annotations.arrows.push(entry);
-      this._pushUndo({ type: 'addArrow', ...entry });
+      this._pushUndo({ type: 'addArrow', from: entry.from, to: entry.to, color: entry.color, thickness: entry.thickness, arrowType: entry.type });
       this._redoStack = [];
     }
   }
