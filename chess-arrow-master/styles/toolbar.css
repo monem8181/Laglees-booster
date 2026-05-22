@@ -1,0 +1,86 @@
+/* Chess Arrow Master – Toolbar Styles */
+
+#cam-fab {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#cam-fab:active {
+  transform: scale(0.95);
+}
+
+#cam-menu {
+  transition: opacity 0.15s ease;
+}
+
+.cam-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #666;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.cam-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  color: #d0d0d0;
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  font-family: inherit;
+  outline: none;
+}
+
+.cam-btn:active {
+  transform: scale(0.96);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.cam-btn.cam-active {
+  background: rgba(59, 130, 246, 0.3);
+  border-color: rgba(59, 130, 246, 0.5);
+  color: #93c5fd;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
+}
+
+.cam-color-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.cam-color-swatch:active {
+  transform: scale(0.9);
+}
+
+.cam-color-swatch.cam-color-active {
+  border-color: #fff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5), 0 2px 8px rgba(0, 0, 0, 0.4);
+  transform: scale(1.1);
+}
+
+/* Scrollbar styling for menus */
+#cam-panel::-webkit-scrollbar,
+#cam-settings-panel ::-webkit-scrollbar {
+  width: 4px;
+}
+
+#cam-panel::-webkit-scrollbar-track,
+#cam-settings-panel ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#cam-panel::-webkit-scrollbar-thumb,
+#cam-settings-panel ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+}
